@@ -26,9 +26,13 @@ func main() {
 
 	app := neo.App()
 
+	//  == * == * == * == * ==   G E T      S E C T I O N   == * == * == * == * == * == * ==
+
 	route := app.Get("/", func(ctx *neo.Ctx) {
 		ctx.Res.Text("I am Neo Programmer", 200)
 	})
+
+	//  == * == * == * == * ==  M I D D L E W A R E      S E C T I O N   == * == * == * == * == * == * ==
 
 	route.Use(func(ctx *neo.Ctx, next neo.Next) {
 		if 1 == 1 {
@@ -37,6 +41,13 @@ func main() {
 			ctx.Res.Status = 401
 		}
 	})
+
+	//  == * == * == * == * ==   M I D D L E W A R E      S E C T I O N   == * == * == * == * == * == * ==
+
+	//  == * == * == * == * ==   G E T      S E C T I O N   == * == * == * == * == * == * ==
+
+	//  == * == * == * == * ==   P O S T     S E C T I O N   == * == * == * == * == * == * ==
+
 	app.Post("/post/id/:id/key/:key", func(ctx *neo.Ctx) {
 		fmt.Println("\n\tIn post\n")
 		fmt.Println("\n\tUpdating image with id " + ctx.Req.Params.Get("id"))
@@ -95,6 +106,8 @@ func main() {
 		//  == * == * == * == * ==   R E S P O N S E      S E C T I O N   == * == * == * == * == * == * ==
 
 	})
+
+	//  == * == * == * == * ==   P O S T     S E C T I O N   == * == * == * == * == * == * ==
 
 	//  == * == * == * == * ==   M I D D L E W A R E      S E C T I O N   == * == * == * == * == * == * ==
 	app.Use(func(ctx *neo.Ctx, next neo.Next) {
