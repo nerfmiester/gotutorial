@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/ivpusic/neo"
+	"github.com/satori/go.uuid"
+	"gopkg.in/redis.v2"
 )
 
 type MyJsonName struct {
@@ -71,8 +74,26 @@ func main() {
 
 		fmt.Printf("\n\n\n\tJSON Body parsed name => %s , Name set to upper is => %s 	, Value => %.2f and an active flag of %t \n", jsDesc.Name, jsDesc.UpperName(), jsDesc.Value, jsDesc.Active)
 
-		fmt.Println("\n\t" + PostHandler(ctx) + "\n")
+		//  == * == * == * == * ==   J S O N      S E C T I O N   == * == * == * == * == * == * ==
+
+		//  == * == * == * == * ==   R E D I S      S E C T I O N   == * == * == * == * == * == * ==
+		uuid := uuid.NewV4()
+		out, err := json.Marshal(jsDesc)
+		if err != nil {
+			fmt.Println(err)
+		}
+		insertOK := AddRedis(uuid.String(), string(out))
+
+		//  == * == * == * == * ==   R E D I S       S E C T I O N   == * == * == * == * == * == * ==
+
+		//  == * == * == * == * ==   R E S P O N S E       S E C T I O N   == * == * == * == * == * == * ==
+
+		fmt.Println("\n\t" + PostHandler(ctx) + " \n")
+		fmt.Printf("\n\trecord inserted into Redis? => %t \n\n", insertOK)
 		ctx.Res.Text(PostHandler(ctx), 200)
+
+		//  == * == * == * == * ==   R E S P O N S E      S E C T I O N   == * == * == * == * == * == * ==
+
 	})
 
 	//  == * == * == * == * ==   M I D D L E W A R E      S E C T I O N   == * == * == * == * == * == * ==
@@ -93,4 +114,22 @@ func main() {
 func PostHandler(ctx *neo.Ctx) string {
 
 	return "I am newer Neo posting Programmer called => " + ctx.Req.Params.Get("id") + " with a key value of " + ctx.Req.Params["key"]
+}
+
+func AddRedis(uuid string, out string) bool {
+
+	client := getRedisConnection()
+
+	keys := client.SetNX(uuid, out)
+	fmt.Printf("\n\n\tRedis key  => %s , Redis Value => %s 	with a return code of %t \n", uuid, out, keys.Val())
+	return keys.Val()
+}
+
+func getRedisConnection() *redis.Client {
+
+	return redis.NewTCPClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 }
